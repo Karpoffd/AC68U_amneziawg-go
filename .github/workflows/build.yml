@@ -1,0 +1,24 @@
+name: Build for RT-AC68U
+on: [workflow_dispatch] # Позволяет запускать сборку кнопкой
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Compile AmneziaWG
+        run: |
+          GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 \
+          go build -v -ldflags="-s -w" -o amneziawg-go-ac68u
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amneziawg-binary
+          path: amneziawg-go-ac68u
