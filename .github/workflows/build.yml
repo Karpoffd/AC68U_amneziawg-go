@@ -1,29 +1,31 @@
-name: Build AmneziaWG for RT-AC68U
+name: Build AmneziaWG-Go (Pure Userspace)
 
 on:
-  workflow_dispatch: # Позволяет запускать сборку вручную кнопкой
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout AmneziaWG-Go
         uses: actions/checkout@v4
+        with:
+          repository: 'amnezia-vpn/amneziawg-go' # Клонируем именно репозиторий автора
+          fetch-depth: 1
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22' # Стабильная версия Go
+          go-version: '1.22'
 
-      - name: Compile AmneziaWG (ARMv7 Compatible)
+      - name: Compile for RT-AC68U (ARM 32-bit)
         run: |
-          # Используем GOARM=5 для максимальной совместимости с AC68U
-          # CGO_ENABLED=0 делает бинарник статическим (не зависит от библиотек роутера)
-          GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=0 \
-          go build -v -ldflags="-s -w" -o amneziawg-go
+          # ВАЖНО: GOARCH=arm (не arm64!) и GOARM=5 для стабильности на Broadcom
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=5 \
+          go build -v -ldflags="-s -w" -o amneziawg-go-ac68u
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: amneziawg-go-ac68u
-          path: amneziawg-go
+          name: amneziawg-go-final
+          path: amneziawg-go-ac68u
